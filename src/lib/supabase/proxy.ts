@@ -25,10 +25,12 @@ export async function updateSession(request: NextRequest) {
     }
   )
 
-  // Refresh the session so it does not expire between requests. Do not
-  // trust getSession() here for authorization; use getUser() in server
-  // code when a route needs to know who is signed in.
-  await supabase.auth.getUser()
+  // Refresh the session so it does not expire between requests, and
+  // return the authenticated user (via getUser, never getSession) so the
+  // proxy can redirect unauthenticated visitors away from app routes.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  return supabaseResponse
+  return { response: supabaseResponse, user }
 }
